@@ -1,48 +1,53 @@
 const http = require('http');
 const fs = require('fs');
 
-http.createServer((req, res) => {
-    if (req.url.toLowerCase() === '/') {
-        fs.readFile('html/index.html', (err, data) => {
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.write(data);
-            res.end();
-        });
-    } else if (req.url.toLowerCase() === '/status') {
-        fs.readFile('html/status.html', (err, data) => {
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.write(data);
-            res.end();
-        });
-    } else if (req.url.toLowerCase() === '/contact') {
-        fs.readFile('html/contact.html', (err, data) => {
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.write(data);
-            res.end();
-        });
-    } else if (req.url.toLowerCase() === '/css/main.css') {
-        fs.readFile('css/main.css', (err, data) => {
-            res.writeHead(200, {'Content-Type': 'text/css'});
-            res.write(data);
-            res.end();
-        });
-    }else if (req.url.toLowerCase() === '/css/404.css') {
-        fs.readFile('css/404.css', (err, data) => {
-            res.writeHead(200, {'Content-Type': 'text/css'});
-            res.write(data);
-            res.end();
-        });
-    } else if (req.url.toLowerCase() === '/img/icon.png') {
-        fs.readFile('img/icon.png', (err, data) => {
-            res.writeHead(200, {'Content-Type': 'image/png'});
-            res.write(data);
-            res.end();
-        });
-    } else {
-        fs.readFile('html/404.html', (err, data) => {
-            res.writeHead(404, {'Content-Type': 'text/html'});
-            res.write(data);
-            res.end();
-        });
+let pageViews = 0;
+let server = http.createServer((req, res) => {
+    switch (req.url.toLowerCase()) {
+        case '/':
+            sendResponse(res, 'html/index.html', 200, 'text/html');
+            pageViews++;
+            break;
+
+        case '/status':
+            sendResponse(res, 'html/status.html', 200, 'text/html');
+            pageViews++;
+            break;
+
+        case '/contact':
+            sendResponse(res, 'html/contact.html', 200, 'text/html');
+            pageViews++;
+            break;
+
+        case '/pageviews':
+            pageViews++;
+            fs.readFile('html/pageviews.html', {encoding: 'utf8'}, (err, data) => {
+                res.writeHead(200, {'Content-Type': 'text/html'});
+                data = data.replace('placeholder', pageViews);
+                res.write(data);
+                res.end();
+            });
+            break;
+
+        case '/css/style.css':
+            sendResponse(res, 'css/style.css', 200, 'text/css');
+            break;
+
+        case '/favicon.ico':
+            sendResponse(res, 'img/favicon.ico', 200, 'image/x-icon');
+            break;
+
+        default:
+            sendResponse(res, 'html/404.html', 404, 'text/html');
     }
-}).listen(3000);
+});
+
+server.listen(3000);
+
+function sendResponse(res, file, status, type) {
+    fs.readFile(file, (err, data) => {
+        res.writeHead(status, {'Content-Type': type});
+        res.write(data);
+        res.end();
+    });
+}
